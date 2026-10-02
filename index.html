@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827"><title>MyPhone — Life Simulator</title>
+<style>
+:root{--ink:#151923;--muted:#7b8190;--bg:#eef0f5;--card:#fff;--accent:#6558e8;--line:#e8eaf0}
+*{box-sizing:border-box}body{margin:0;background:#10131b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+.phone{width:min(430px,100vw);height:min(920px,100dvh);background:var(--bg);position:relative;overflow:hidden;box-shadow:0 15px 70px #0008}
+.status{height:34px;background:#111827;color:white;display:flex;justify-content:space-between;padding:8px 22px 0;font-size:12px;font-weight:650}
+.top{height:58px;background:#111827;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.brand{font-weight:800;letter-spacing:.3px}.brand small{font-weight:500;color:#aeb5c7;font-size:10px;display:block;letter-spacing:1.2px}
+.avatar{width:35px;height:35px;border-radius:50%;background:#8175ff;display:grid;place-items:center;font-weight:800}
+.main{height:calc(100% - 162px);overflow:auto;padding:16px 15px 24px}
+.bottom{height:70px;position:absolute;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding-bottom:env(safe-area-inset-bottom)}
+.nav{background:none;border:0;color:#8a8f9d;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px}.nav b{font-size:20px;font-weight:500}.nav.active{color:var(--accent)}
+h1{font-size:24px;margin:3px 0 4px}h2{font-size:17px;margin:0 0 12px}.sub{color:var(--muted);font-size:12px}
+.card{background:var(--card);border-radius:19px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #22222208}
+.hero{background:linear-gradient(135deg,#6558e8,#9288ff);color:white;border-radius:22px;padding:19px;margin:13px 0;box-shadow:0 8px 20px #6558e833}
+.hero .amount{font-size:32px;font-weight:800;margin:7px 0}.hero .sub{color:#e4e1ff}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.row+.row{margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.app{border:0;background:transparent;color:var(--ink);font-size:11px;text-align:center;padding:0}
+.appicon{width:55px;height:55px;border-radius:17px;display:grid;place-items:center;color:white;font-size:25px;margin:0 auto 6px;box-shadow:0 4px 10px #0002}
+.tag{font-size:10px;background:#f0efff;color:#6256d7;border-radius:20px;padding:5px 8px;font-weight:700}
+.btn{border:0;border-radius:12px;padding:11px 14px;background:var(--accent);color:#fff;font-weight:700;font-size:13px}
+.btn.light{background:#f0efff;color:#5e53d4}.btn.dark{background:#202535}.btn.red{background:#fff0f0;color:#c33}
+input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:#fafbfe;font:inherit;font-size:13px;margin:5px 0 10px;color:var(--ink)}
+label{font-size:11px;color:var(--muted);font-weight:700}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.item{padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}
+.itemtitle{font-size:13px;font-weight:700}.money{font-weight:800;font-size:13px}.green{color:#15945a}.redtxt{color:#c34d55}
+.iconcircle{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:18px;background:#f0efff}
+.notice{background:#fff8e7;color:#87651b;border-radius:12px;padding:10px;font-size:11px;margin:10px 0}
+.post{border:1px solid var(--line);border-radius:15px;padding:13px;margin:10px 0}
+.empty{text-align:center;color:var(--muted);padding:22px 8px;font-size:13px}
+.toast{position:absolute;bottom:82px;left:20px;right:20px;background:#202535;color:white;padding:13px 16px;border-radius:14px;font-size:12px;display:none;z-index:9;box-shadow:0 8px 25px #0003}
+.small{font-size:11px;color:var(--muted)}
+</style></head>
+<body><div class="phone">
+<div class="status"><span id="clock">14:00</span><span>●●● 5G ▰</span></div>
+<div class="top"><div class="brand">myphone <small>LIFE SIMULATOR · DEMO</small></div><div class="row"><span id="topName" style="font-size:12px;margin-right:9px">Alex</span><div class="avatar" id="avatar">A</div></div></div>
+<main class="main" id="view"></main>
+<nav class="bottom">
+<button class="nav active" data-page="home" onclick="go('home')"><b>⌂</b>Home</button>
+<button class="nav" data-page="bank" onclick="go('bank')"><b>€</b>Bank</button>
+<button class="nav" data-page="market" onclick="go('market')"><b>▣</b>Market</button>
+<button class="nav" data-page="chat" onclick="go('chat')"><b>◌</b>Chat</button>
+<button class="nav" data-page="more" onclick="go('more')"><b>☷</b>Altro</button>
+</nav><div class="toast" id="toast"></div></div>
+<script>
+const KEY='myphone_life_v2';
+const initial=()=>({profile:{name:'Alex Romano',city:'Milano',bio:'Costruendo qualcosa di grande ✨'},balance:2480.50,pending:120,transactions:[{title:'Stipendio',amount:1350,date:'Oggi',kind:'in'},{title:'Vendita sneakers',amount:180,date:'Ieri',kind:'in'},{title:'Cena',amount:-32.5,date:'30 set',kind:'out'}],listings:[{title:'Nike Air Max 90',price:120,status:'In vendita'},{title:'Felpa vintage',price:45,status:'In vendita'}],shipments:[{code:'MP-483920',item:'Sneakers',status:'Consegnato'},{code:'MP-104821',item:'Libro',status:'In transito'}],posts:[{text:'Nuovo progetto iniziato 🚀',likes:12,date:'Oggi'}],messages:[{from:'Matteo',text:'Ci vediamo stasera?',time:'13:42'},{from:'Acquirente',text:'Ciao! È ancora disponibile?',time:'12:18'}],notifications:[{text:'Benvenuto su MyPhone! Il tuo spazio demo è pronto.',time:'Adesso'}],job:{role:'Social Media Assistant',salary:1350,next:'Domani · 09:00'},car:{model:'BMW Serie 1',plate:'DEMO-2026',km:42180},home:{address:'Via delle Magnolie 18, Milano',type:'Appartamento',rent:650},events:[{title:'Caffè con Matteo',date:'Oggi · 18:30'}]});
+let s;try{s=JSON.parse(localStorage.getItem(KEY))||initial()}catch(e){s=initial()}
+let page='home';
+const eur=n=>Number(n).toLocaleString('it-IT',{style:'currency',currency:'EUR'});
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(s));syncTop()};
+const syncTop=()=>{topName.textContent=s.profile.name.split(' ')[0];avatar.textContent=s.profile.name.trim()[0]?.toUpperCase()||'A'};
+function toast(t){let x=document.getElementById('toast');x.textContent=t;x.style.display='block';setTimeout(()=>x.style.display='none',2400)}
+function addTx(title,amount,kind='in'){s.transactions.unshift({title,amount:kind==='out'?-Math.abs(amount):Math.abs(amount),date:'Oggi',kind});s.balance+=kind==='out'?-Math.abs(amount):Math.abs(amount);s.notifications.unshift({text:`Movimento registrato: ${title} · ${eur(Math.abs(amount))}`,time:'Adesso'});save()}
+function go(p){page=p;document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('active',b.dataset.page===p));render()}
+function card(title,body,extra=''){return `<section class="card"><div class="row"><h2>${title}</h2>${extra}</div>${body}</section>`}
+function apps(){let a=[['bank','€','MyBank','#202535'],['market','🛍','Market','#00a59a'],['social','◎','Social','#f04f8c'],['mail','✉','Mail','#3984f5'],['work','▣','Work','#7565e8'],['track','📦','Track','#f39b36'],['garage','🚗','Garage','#4c566a'],['homeapp','⌂','Casa','#27a36b'],['calendar','▦','Agenda','#ed6558'],['maps','⌖','Mappe','#3298bf'],['notify','♧','Notifiche','#e9a52e'],['settings','⚙','Impost.','#8b91a0']];return `<div class="grid">${a.map(x=>`<button class="app" onclick="go('${x[0]}')"><div class="appicon" style="background:${x[3]}">${x[1]}</div>${x[2]}</button>`).join('')}</div>`}
+function render(){syncTop();let v='';
+if(page==='home'){v=`<div class="row"><div><h1>Buongiorno, ${s.profile.name.split(' ')[0]} 👋</h1><div class="sub">${new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}</div></div><span class="tag">ROLEPLAY</span></div><div class="hero"><div class="row"><span class="sub">Saldo MyBank</span><span>◈</span></div><div class="amount">${eur(s.balance)}</div><div class="row"><span class="sub">In sospeso ${eur(s.pending)}</span><button class="btn light" onclick="go('bank')">Apri conto</button></div></div>${apps()}${card('Attività recenti',s.transactions.slice(0,3).map(tx=>`<div class="item row"><div><div class="itemtitle">${tx.title}</div><div class="small">${tx.date}</div></div><div class="money ${tx.amount>=0?'green':'redtxt'}">${tx.amount>=0?'+':''}${eur(tx.amount)}</div></div>`).join(''))}<div class="notice">SIMULAZIONE: tutti i profili, importi, messaggi e documenti sono inventati e restano salvati solo in questo browser.</div>`}
+if(page==='bank'){v=`<h1>MyBank</h1><div class="sub">Il tuo conto personale · DEMO</div><div class="hero"><div class="sub">Saldo disponibile</div><div class="amount">${eur(s.balance)}</div><div class="sub">Saldo in sospeso · ${eur(s.pending)}</div></div><div class="row"><button class="btn" onclick="txForm('in')">＋ Entrata</button><button class="btn dark" onclick="txForm('out')">− Uscita</button></div>${card('Movimenti',s.transactions.map(tx=>`<div class="item row"><div><div class="itemtitle">${tx.title}</div><div class="small">${tx.date}</div></div><div class="money ${tx.amount>=0?'green':'redtxt'}">${tx.amount>=0?'+':''}${eur(tx.amount)}</div></div>`).join('')||'<div class="empty">Nessun movimento</div>')}`}
+if(page==='market'){v=`<h1>Market</h1><div class="sub">Il tuo marketplace di fantasia</div><button class="btn" onclick="listingForm()">＋ Crea annuncio</button>${card('I tuoi annunci',s.listings.map((x,i)=>`<div class="item"><div class="row"><div><div class="itemtitle">${x.title}</div><div class="small">${x.status}</div></div><b>${eur(x.price)}</b></div><div class="row" style="margin-top:9px"><button class="btn light" onclick="sellItem(${i})">Segna venduto</button><button class="btn red" onclick="delListing(${i})">Elimina</button></div></div>`).join('')||'<div class="empty">Non hai ancora annunci</div>')}<div class="notice">Quando segni un articolo come venduto, il ricavo viene aggiunto automaticamente a MyBank e viene creata una spedizione demo.</div>`}
+if(page==='chat'){v=`<h1>Chat</h1><div class="sub">Messaggi del tuo personaggio</div><button class="btn" onclick="messageForm()">＋ Nuovo messaggio</button>${card('Conversazioni',s.messages.map((m,i)=>`<div class="item row" onclick="readMessage(${i})"><div><div class="itemtitle">${m.from}</div><div class="small">${m.text}</div></div><span class="small">${m.time}</span></div>`).join('')||'<div class="empty">Nessuna conversazione</div>')}`}
+if(page==='social'){v=`<h1>Social</h1><div class="sub">@${s.profile.name.toLowerCase().replaceAll(' ','_')} · 2.481 follower</div><div class="card"><label>Scrivi un post</label><textarea id="postText" placeholder="A cosa stai pensando?"></textarea><button class="btn" onclick="publishPost()">Pubblica</button></div>${s.posts.map(p=>`<div class="post"><b>@${s.profile.name.toLowerCase().replaceAll(' ','_')}</b><p>${esc(p.text)}</p><div class="row"><span class="small">${p.date}</span><span class="small">♡ ${p.likes} Mi piace</span></div></div>`).join('')}`}
+if(page==='mail'){v=`<h1>Mail</h1>${card('Posta in arrivo',s.messages.map(m=>`<div class="item"><b>${m.from}</b><p style="margin:5px 0">${m.text}</p><span class="small">${m.time}</span></div>`).join(''))}`}
+if(page==='work'){v=`<h1>Work</h1><div class="card"><div class="iconcircle">💼</div><h2 style="margin-top:12px">${esc(s.job.role)}</h2><div class="sub">Prossimo turno: ${esc(s.job.next)}</div><h2 style="font-size:25px;margin:15px 0 4px">${eur(s.job.salary)} <span class="small">/ mese</span></h2><button class="btn" onclick="paySalary()">Ricevi stipendio demo</button> <button class="btn light" onclick="jobForm()">Modifica lavoro</button></div>`}
+if(page==='track'){v=`<h1>Track</h1><div class="sub">Spedizioni demo</div>${card('I tuoi pacchi',s.shipments.map(x=>`<div class="item"><div class="row"><b>${x.code}</b><span class="tag">${x.status}</span></div><div class="small">${x.item}</div></div>`).join('')||'<div class="empty">Nessuna spedizione</div>')}`}
+if(page==='garage'){v=`<h1>Garage</h1><div class="card"><div style="font-size:60px">🚘</div><h2>${esc(s.car.model)}</h2><div class="sub">Targa ${esc(s.car.plate)} · ${s.car.km.toLocaleString('it-IT')} km</div><button class="btn light" onclick="carForm()">Modifica veicolo</button></div>`}
+if(page==='homeapp'){v=`<h1>Casa</h1><div class="card"><div style="font-size:50px">🏡</div><h2>${esc(s.home.type)}</h2><p>${esc(s.home.address)}</p><div class="row"><span class="sub">Affitto mensile</span><b>${eur(s.home.rent)}</b></div><button class="btn light" onclick="houseForm()">Modifica casa</button></div>`}
+if(page==='calendar'){v=`<h1>Agenda</h1><div class="sub">Impegni del personaggio</div><button class="btn" onclick="eventForm()">＋ Aggiungi evento</button>${card('Prossimi eventi',s.events.map((e,i)=>`<div class="item row"><div><b>${esc(e.title)}</b><div class="small">${esc(e.date)}</div></div><button class="btn red" onclick="delEvent(${i})">×</button></div>`).join('')||'<div class="empty">Agenda libera</div>')}`}
+if(page==='maps'){v=`<h1>Mappe</h1><div class="card" style="background:linear-gradient(135deg,#d9eadf,#c4d9e9);height:230px;display:grid;place-items:center;text-align:center"><div><div style="font-size:45px">📍</div><b>${esc(s.profile.city)}</b><p class="small">Mappa illustrativa non navigabile</p></div></div><div class="card"><b>Posizione salvata</b><p>${esc(s.home.address)}</p></div>`}
+if(page==='notify'){v=`<h1>Notifiche</h1>${card('Centro notifiche',s.notifications.map(n=>`<div class="item"><div>${esc(n.text)}</div><div class="small">${n.time}</div></div>`).join('')||'<div class="empty">Nessuna notifica</div>')}`}
+if(page==='settings'){v=`<h1>Impostazioni</h1><div class="card"><label>Nome personaggio</label><input id="profileName" value="${attr(s.profile.name)}"><label>Città</label><input id="profileCity" value="${attr(s.profile.city)}"><label>Bio</label><textarea id="profileBio">${esc(s.profile.bio)}</textarea><button class="btn" onclick="saveProfile()">Salva profilo</button></div><div class="card"><b>Dati e salvataggio</b><p class="small">I dati vengono conservati in questo browser su questo dispositivo.</p><button class="btn red" onclick="resetAll()">Ripristina simulazione</button></div><div class="notice">MyPhone è un progetto di roleplay: non è una banca, un marketplace, un social o un servizio di spedizione reale.</div>`}
+if(page==='more'){v=`<h1>Tutte le app</h1><div class="sub">Apri un'applicazione</div>${apps()}`}
+view.innerHTML=v}
+function esc(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function attr(x){return esc(x)}
+function txForm(kind){let title=prompt(kind==='in'?'Descrizione entrata':'Descrizione uscita');if(!title)return;let amount=parseFloat(prompt('Importo in euro:','50')?.replace(',','.'));if(!Number.isFinite(amount)||amount<=0)return toast('Importo non valido');addTx(title,amount,kind);render();toast('Movimento demo aggiunto')}
+function listingForm(){let title=prompt('Nome articolo:');if(!title)return;let price=parseFloat(prompt('Prezzo in euro:','50')?.replace(',','.'));if(!Number.isFinite(price)||price<=0)return toast('Prezzo non valido');s.listings.unshift({title,price,status:'In vendita'});save();render()}
+function sellItem(i){let x=s.listings[i];if(x.status==='Venduto')return toast('Articolo già venduto');x.status='Venduto';addTx('Vendita: '+x.title,x.price,'in');let code='MP-'+Math.floor(100000+Math.random()*900000);s.shipments.unshift({code,item:x.title,status:'Da preparare'});s.messages.unshift({from:'Acquirente',text:`Ho acquistato ${x.title}! Grazie.`,time:'Adesso'});s.notifications.unshift({text:`Hai venduto ${x.title}. Spedizione ${code} creata.`,time:'Adesso'});save();render();toast('Vendita registrata: saldo aggiornato e spedizione creata')}
+function delListing(i){s.listings.splice(i,1);save();render()}
+function publishPost(){let t=postText.value.trim();if(!t)return;s.posts.unshift({text:t,likes:0,date:'Adesso'});s.notifications.unshift({text:'Il tuo nuovo post è online.',time:'Adesso'});save();render();toast('Post pubblicato')}
+function paySalary(){addTx('Stipendio · '+s.job.role,s.job.salary,'in');render();toast('Stipendio demo accreditato')}
+function jobForm(){let r=prompt('Ruolo lavorativo:',s.job.role);if(r)s.job.role=r;let n=parseFloat(prompt('Stipendio mensile:',s.job.salary));if(Number.isFinite(n)&&n>0)s.job.salary=n;save();render()}
+function carForm(){let m=prompt('Modello auto:',s.car.model);if(m)s.car.model=m;let k=parseInt(prompt('Chilometri:',s.car.km));if(Number.isFinite(k))s.car.km=k;save();render()}
+function houseForm(){let a=prompt('Indirizzo:',s.home.address);if(a)s.home.address=a;let r=parseFloat(prompt('Affitto mensile:',s.home.rent));if(Number.isFinite(r))s.home.rent=r;save();render()}
+function eventForm(){let t=prompt('Nome evento:');if(!t)return;let d=prompt('Quando?','Domani · 18:00')||'Da definire';s.events.push({title:t,date:d});save();render()}
+function delEvent(i){s.events.splice(i,1);save();render()}
+function messageForm(){let f=prompt('Nome contatto:');if(!f)return;let t=prompt('Messaggio:');if(!t)return;s.messages.unshift({from:f,text:t,time:'Adesso'});save();render()}
+function readMessage(i){let m=s.messages[i];alert(m.from+'\\n\\n'+m.text)}
+function saveProfile(){s.profile.name=profileName.value.trim()||'Alex Romano';s.profile.city=profileCity.value.trim();s.profile.bio=profileBio.value;save();render();toast('Profilo aggiornato')}
+function resetAll(){if(confirm('Vuoi cancellare tutti i dati e ripristinare la demo?')){s=initial();save();go('home')}}
+function tick(){clock.textContent=new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}
+syncTop();tick();setInterval(tick,15000);render();
+</script></body></html>
